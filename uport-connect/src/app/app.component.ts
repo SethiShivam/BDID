@@ -16,11 +16,25 @@ import { Router } from '@angular/router';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'unitydemo';
-  uport
+  title = 'Decentralized system testing..';
   isLogin = false
   constructor(private router: Router) {
+    let self = this;
+    uport.onResponse('disclosureReq', function (err,res ) {
+      debugger
+      if (err) {
+        throw err
+      }
 
+      console.log("RESPONSE : ", res)
+
+      var json = JSON.stringify(res.payload)
+      if (json) {
+        localStorage.setItem('did', json)
+        self.router.navigate(['/dashboard']);
+        self.isLogin = true
+      }
+    })
   }
   ngOnInit() {
     if (localStorage.getItem('did')) {
@@ -31,32 +45,17 @@ export class AppComponent {
     const reqObj = {
       requested: ['name', 'country', 'email', 'phone'],
       notifications: true,
-      networkId : "",
-      rpcUrl : "",
-      accountType : "",
-      expiresIn : 2000,
-      verified : [""],
-      callbackUrl : ""
+      networkId: "",
+      rpcUrl: "",
+      accountType: "",
+      expiresIn: 2000,
+      verified: [""],
+      callbackUrl: ""
     }
-   // const reqId = 'disclosureReq'
+    // const reqId = 'disclosureReq'
 
     uport.requestDisclosure(reqObj)
-//cb
-    uport.onResponse('disclosureReq',function(res,err){
-      if(err)
-      {
-        throw err
-      }
-
-      console.log("RESPONSE : ", res )
-
-      var json = JSON.stringify(res.payload)
-      if (json) {
-        localStorage.setItem('did', json)
-        this.router.navigate(['/dashboard']);
-        this.isLogin = true
-      }
-  })
+    //cb
   }
   logout() {
     this.isLogin = false

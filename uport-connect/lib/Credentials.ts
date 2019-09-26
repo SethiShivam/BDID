@@ -361,7 +361,6 @@ export class Credentials {
   }
 
   signJWT(payload: object, expiresIn?: number) {
-    debugger
     if (!(this.did && this.signer))
       return Promise.reject(new Error('No Signing Identity configured'))
     return createJWT(payload, {
@@ -468,7 +467,7 @@ export class Credentials {
         )
       }
     }
-debugger;
+
     return this.signJWT(
       { ...payload, type: Types.DISCLOSURE_REQUEST },
       params.exp ? undefined : expiresIn

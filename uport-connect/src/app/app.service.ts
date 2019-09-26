@@ -1,2 +1,2 @@
-import Connect from '/home/codezeros/Desktop/ShivamSethi/Projects/BeyondIdentity/lib/Connect.js' 
-export const uport = new Connect("First Claim");
+import Connect from '../../lib/Connect'
+export const uport = new Connect("NK Enterprise..");

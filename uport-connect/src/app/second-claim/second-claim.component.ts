@@ -14,35 +14,32 @@ export class SecondClaimComponent implements OnInit {
     var reqObj = {
       requested: [],
       notifications: true,
-      networkId : "",
-      rpcUrl : "",
-      accountType : "",
-      expiresIn : 2000,
+      networkId: "",
+      rpcUrl: "",
+      accountType: "",
+      expiresIn: 2000,
       verified: ['FirstClaim'],
-      callbackUrl : "",
+      callbackUrl: "",
     }
-   second.requestDisclosure(reqObj)
-    
-    second.onResponse('disclosureReq',function(err){
-      throw err
-  }).then(res => {
-      
+    second.requestDisclosure(reqObj)
+
+    second.onResponse('disclosureReq', function (err, res) {
+      if (err)
+        throw err
+
       var json = res.payload
       if (json.FirstClaim.SPI > 70) {
-        console.log('json',json.FirstClaim)
+        console.log('json', json.FirstClaim)
         let verification = {
           exp: (Math.floor(new Date().getTime() / 1000) + 30 * 24 * 60 * 60).toString(),
           claim: { 'SecondClaim': { 'OfficeName': 'Codezeros' } }
         }
         second.sendVerification(verification)
-      } else{
+      } else {
         alert('You are not valid For this Job')
         console.log('not valid')
       }
-
-    //   // document.querySelector('#msg').innerHTML = "Congratulations you are now `logged in`.  Here is the response:  " + json
-    // })
-  })  
+    })
 
   }
 }

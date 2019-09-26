@@ -3,9 +3,9 @@ import { ContractFactory } from './Contract'
 import { verifyJWT, decodeJWT } from './JWT.ts'
 import MobileDetect from 'mobile-detect'
 import { isMNID, encode, decode } from 'mnid'
-import { qr, push, messageServer, poll, url, ui } from './uport-transports/transport/index'
-import { util } from './uport-transports/message/index'
-import { defaults, config } from './uport-transports/network/index'
+import { qr, push, messageServer, poll, url, ui } from './uport-transports/transport'
+import { util } from './uport-transports/message'
+import { defaults, config } from './uport-transports/network'
 // import { transport, message, network } from './uport-transports'
 import PubSub from 'pubsub-js'
 import store from 'store'
@@ -56,7 +56,6 @@ class Connect {
     this.useStore = opts.useStore === undefined ? true : opts.useStore
     this.usePush = opts.usePush === undefined ? true : opts.usePush
     this.vc = Array.isArray(opts.vc) ? opts.vc : []
-
     // Disallow segregated account on mainnet
     if (this.network === defaults.networks.mainnet && this.accountType === 'segregated') {
       throw new Error('Segregated accounts are not supported on mainnet')
@@ -81,7 +80,7 @@ class Connect {
       messageToURI: (m) => this.useDeeplinks ? util.messageToDeeplinkURI(m) : util.messageToUniversalURI(m)
     })
     this.onloadResponse = opts.onloadResponse || url.getResponse()
-    this.pushTransport = (this.pushToken && this.publicEncKey) ? pushTransport(this.pushToken, this.publicEncKey) : undefined
+    this.pushTransport = (this.pushToken && this.publicEncKey) ? pushTransport(this.pushToken, this.publicEncKey) : undefined;
     url.listenResponse((err, res) => {
       if (err) throw err
       // Switch to deep links after first universal link success
@@ -148,8 +147,9 @@ class Connect {
    *  @return   {Promise<Object, Error>}   promise resolves once valid response for given id is avaiable, otherwise rejects with error, no promised returned if callback given
    */
   onResponse(id, cb) {
-    debugger
     const parseResponse = (res) => {
+      // debugger
+
       if (res.error) return Promise.reject(Object.assign({ id }, res))
       if (util.isJWT(res.payload)) {
         const jwt = res.payload
@@ -157,13 +157,12 @@ class Connect {
         if (decoded.payload.claim) {
           return Promise.resolve(Object.assign({ id }, res))
         }
-        debugger
         return this.verifyResponse(jwt).then(parsedRes => {
           // Set identifiers present in the response
           // TODO maybe just change name in uport-js
           if (parsedRes.boxPub) parsedRes.publicEncKey = parsedRes.boxPub
           this.setState(parsedRes)
-          return { id, payload: parsedRes, data: res.data }
+          return Promise.resolve({ id, payload: parsedRes, data: res.data })
         })
       } else {
         return Promise.resolve(Object.assign({ id }, res))
@@ -219,7 +218,7 @@ class Connect {
    */
   verifyResponse(token) {
     return verifyJWT(token, { audience: this.credentials.did }).then(res => {
-      debugger
+      // debugger
       this.doc = res.doc
       return this.credentials.processDisclosurePayload(res)
     })
@@ -255,22 +254,15 @@ class Connect {
   // }
 
 
-  send (request, id, {redirectUrl, data, type, cancel} = {}) {
-    debugger
+  send(request, id, { redirectUrl, data, type, cancel } = {}) {
     if (!id) throw new Error('Requires request id')
     if (this.isOnMobile) {
       if (!redirectUrl & !type) type = 'redirect'
-      console.log("Inside mobileTransport")
-      this.mobileTransport(request, {id, data, redirectUrl, type})
+      this.mobileTransport(request, { id, data, redirectUrl, type })
     } else if (this.usePush && this.pushTransport) {
-      console.log("Inside pushTransport")
-      this.pushTransport(request, {data}).then(res => this.PubSub.publish(id, res))
+      this.pushTransport(request, { data }).then(res => this.PubSub.publish(id, res))
     } else {
-      console.log("Inside Transport",{request, data, cancel})
-
-      this.transport(request, {data, cancel})
-        .then(res => this.PubSub.publish(id, res))
-        .catch(err => this.PubSub.publish(id, err))
+      this.transport(request, { data, cancel }).then(response => this.PubSub.publish(id, response))
     }
   }
 
@@ -431,28 +423,25 @@ class Connect {
    *  @param    {String}     [id='disclosureReq']  string to identify request, later used to get response
    *  @param    {Object}     [sendOpts]            reference send function options
    */
-  
-  async requestDisclosure(reqObj = {} , id = 'disclosureReq', sendOpts) {
-    debugger
-    console.log({reqObj})
+
+  async requestDisclosure(reqObj = {}, id = 'disclosureReq', sendOpts) {
     if (!reqObj.vc) await this.signAndUploadProfile()
     // Augment request object with verified claims, accountType, and a callback url
+    let data = this.genCallback(id);
+
     reqObj = Object.assign({
       vc: this.vc,
-      accountType: this.accountType || 'none',
-      callbackUrl: this.genCallback(id),
+      accountType: this.accountType || 'none'
     }, reqObj)
-    console.log({reqObj})
+    reqObj.callbackUrl = this.genCallback(id);
     if (reqObj.accountType != 'none') {
       reqObj.networkId = this.network.id
       reqObj.rpcUrl = this.network.rpcUrl
     }
 
     // Create and send request
-    console.log("CHECIKNG SEND OPTS OBJECT : ",  sendOpts);
-    console.log("creating Disclosure Request")
     this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn)
-      .then(jwt => this.send(jwt, id, sendOpts)).catch(e=> console.log("HANDLING ERRROR : ", e ))
+      .then(jwt => this.send(jwt, id, sendOpts))
   }
 
   /**
@@ -608,7 +597,6 @@ class Connect {
    * @returns {Promise<String, Error>}  a promise resolving to the ipfs hash, or rejecting with an error
    */
   signAndUploadProfile(profile) {
-    debugger
     if (!profile && this.vc.length > 0) return
     profile = profile || {
       name: this.appName,
@@ -664,14 +652,9 @@ const connectTransport = (appName) => (request, { data, cancel }) => {
   if (messageServer.isMessageServerCallback(request)) {
     return qr.chasquiSend({ displayText: appName })(request).then(res => ({ payload: res, data }))
   } else {
-    console.log("BEFORE ERROR----------->") 
-    qr.send(appName)(request)
+    console.log("Server with out callback----------->")
+    qr.send(appName)(request);
     // TODO return close QR func?
-    console.log("----------->", data ) 
-
-    // if(!data)
-    //   return Promise.reject({error: "Data object not found" })
-
     return Promise.resolve({ data })
   }
 }
@@ -684,11 +667,12 @@ const connectTransport = (appName) => (request, { data, cancel }) => {
  * @private
  */
 const pushTransport = (pushToken, publicEncKey) => {
-  debugger
+  // debugger
   const send = push.sendAndNotify(pushToken, publicEncKey)
 
   return (request, { type, redirectUrl, data }) => {
     if (messageServer.isMessageServerCallback(request)) {
+      console.log({ request, type, redirectUrl, send })
       return messageServer.URIHandlerSend(send)(request, { type, redirectUrl })
         .then(res => {
           ui.close()

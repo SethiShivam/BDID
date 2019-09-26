@@ -26,7 +26,9 @@ const URIHandlerSend = (uriHandler, { messageServerUrl = CHASQUI_URL, pollingInt
   if (!uriHandler) throw new Error('uriHandler function required')
   return (message, params = {}) => {
     let uri = messageToURI(message)
+    console.log({ uri });
     const callback = getCallback(uri)
+    console.log({ callback })
     if (!isMessageServerCallback(uri, messageServerUrl))
       throw new Error('Not a request that can be handled by this configured messaging server transport')
     let isCancelled = false
@@ -78,7 +80,7 @@ const clearResponse = url => {
       withCredentials: false,
       rejectUnauthorized: false,
     },
-    function(err) {
+    function (err) {
       if (err) {
         throw err
       } /* Errors without this cb */
@@ -93,8 +95,10 @@ const formatMessageServerUrl = url => {
   return `${url}/topic/`
 }
 const genCallback = (messageServerUrl = CHASQUI_URL) => `${formatMessageServerUrl(messageServerUrl)}${randomString(16)}`
-const isMessageServerCallback = (uri, messageServerUrl = CHASQUI_URL) =>
-  new RegExp(formatMessageServerUrl(messageServerUrl)).test(getCallback(uri))
+const isMessageServerCallback = ((uri, messageServerUrl = CHASQUI_URL) => {
+  return new RegExp(formatMessageServerUrl(messageServerUrl)).test(getCallback(uri))
+
+})
 const getCallback = uri => {
   const tokenCB = decodeJWT(getURLJWT(uri)).payload.callback
   if (tokenCB) return tokenCB

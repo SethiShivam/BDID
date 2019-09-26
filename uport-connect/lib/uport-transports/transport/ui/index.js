@@ -22,7 +22,7 @@ export const getImageDataURI = async data => {
   // let pngBuffer = qrImage.imageSync(data, { type: 'png' })
   // let pngBuffer = await QRCode.toDataURL(data);
   // return 'data:image/png;charset=utf-8;base64, ' + pngBuffer.toString('base64')
-    return await QRCode.toDataURL(data);  
+  return await QRCode.toDataURL(data);
 }
 
 /**
@@ -42,17 +42,17 @@ export const close = () => {
 const makeModal = (content, closeModal = close) => {
   let wrapper
   // Create new wrapper if not present
-  if (!(wrapper = document.getElementById('uport-wrapper'))) {
+  let sayWrapper = document.getElementById('uport-wrapper');
+  if (!sayWrapper) {
     wrapper = document.createElement('div')
-    wrapper.setAttribute('id', 'uport-wrapper')  
+    wrapper.setAttribute('id', 'uport-wrapper')
+  } else {
+    wrapper = sayWrapper
   }
-  
+
   wrapper.innerHTML = content
-console.log("making model")
   document.body.appendChild(wrapper)
-  console.log("error is here ")
   document.getElementById('uport__modal-x').addEventListener('click', closeModal)
-  console.log("error is  here  1")
 }
 
 /**
@@ -64,19 +64,16 @@ console.log("making model")
  */
 export const open = async (data, cancel, modalText) => {
   const closeModal = close // closure over close for use in callbacks etc.
-  console.log("inside open Method")
   const tempQRModel = await getImageDataURI(data);
-  console.log("getting Image data uri",tempQRModel)
   const content = qrModal(tempQRModel, modalText)
-console.log("QR content is ------>",content)
   const cancelClick = event => {
-    console.log("waiting for the event ------>")
     document.getElementById('uport__qr-text').innerHTML = 'Cancelling'
     if (cancel) cancel()
     closeModal()
   }
 
   makeModal(content, cancelClick)
+  
 }
 
 /**
@@ -116,7 +113,7 @@ export const askProvider = (isTx) => {
     const closeAndResolve = useInjectedProvider => () => {
       const remember = document.getElementById('uport__provider-remember').checked
       close()
-      resolve({remember, useInjectedProvider})
+      resolve({ remember, useInjectedProvider })
     }
 
     makeModal(providerModal(isTx), closeAndResolve(false))

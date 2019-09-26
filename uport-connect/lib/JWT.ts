@@ -125,6 +125,8 @@ export function decodeJWT(jwt: string): JWTDecoded {
     /^([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)\.([a-zA-Z0-9_-]+)$/
   )
   if (parts) {
+    let data = base64url.decode(parts[1]);
+    let data2 = base64url.decode(parts[2])
     return {
       header: JSON.parse(base64url.decode(parts[1])),
       payload: JSON.parse(base64url.decode(parts[2])),
@@ -205,7 +207,6 @@ export async function verifyJWT(
   jwt: string,
   options: JWTVerifyOptions = { auth: null, audience: null, callbackUrl: null }
 ): Promise<Verified> {
-  debugger
   const aud: string = options.audience
     ? normalizeDID(options.audience)
     : undefined

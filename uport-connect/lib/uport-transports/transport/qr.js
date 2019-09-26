@@ -1,5 +1,4 @@
 import nets from 'nets'
-
 import { open, close, failure } from './ui'
 import { paramsToQueryString, messageToURI, getUrlQueryParams } from './../message/util.js'
 import { URIHandlerSend, CHASQUI_URL } from './messageServer'
@@ -20,7 +19,6 @@ const POLLING_INTERVAL = 2000
  */
 const send = displayText => (message, { cancel, compress } = {}) => {
   if (compress) {
-    console.log("Inside Compress")
     compress(message)
       .then(msg => open(msg, cancel, displayText))
       .catch(err => {
@@ -30,7 +28,6 @@ const send = displayText => (message, { cancel, compress } = {}) => {
       })
   } else {
     let uri = messageToURI(message)
-    console.log("URI is ------->",uri)
     uri = /callback_type=/.test(uri) ? uri : paramsToQueryString(uri, { callback_type: 'post' })
     open(uri, cancel, displayText)
   }
@@ -75,7 +72,7 @@ const chasquiCompress = (message, threshold = Number.MAX_VALUE) => {
         withCredentials: false,
         rejectUnauthorized: false,
       },
-      function(err, response) {
+      function (err, response) {
         if (err) reject(err)
         else if (response.statusCode !== 201) reject(new Error('Failed to create topic'))
         else {
@@ -98,8 +95,8 @@ const chasquiCompress = (message, threshold = Number.MAX_VALUE) => {
  *  @param    {String}       message                   a uPort client request message
  *  @return   {Promise<Object, Error>}                 a function to close the QR modal
  */
-const chasquiSend = ({ chasquiUrl = CHASQUI_URL, pollingInterval = POLLING_INTERVAL, displayText= appName } = {}) => {
-  const transport = URIHandlerSend(send(displayText, { compress: chasquiCompress }), { chasquiUrl, pollingInterval })
+const chasquiSend = ({ chasquiUrl = CHASQUI_URL, pollingInterval = POLLING_INTERVAL, displayText = appName } = {}) => {
+  const transport = URIHandlerSend(send(displayText, { compress: chasquiCompress }), { chasquiUrl, pollingInterval });
   return (message, params) =>
     transport(message, params).finally(_ => {
       close()
