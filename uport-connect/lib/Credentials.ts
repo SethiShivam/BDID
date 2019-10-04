@@ -84,7 +84,7 @@ interface VerifiableClaimsSpec {
 
 
 interface UserInfoSpec {
-  [claimType: string]: ClaimSpec|null
+  [claimType: string]: ClaimSpec | null
 }
 
 interface ClaimsSpec {
@@ -104,7 +104,7 @@ interface DisclosureRequestParams {
   accountType?: 'none' | 'segregated' | 'keypair' | 'none',
 }
 
-interface DisclosureRequestPayload extends JWTPayload{
+interface DisclosureRequestPayload extends JWTPayload {
   claims?: ClaimsSpec,
   requested?: string[]
   verified?: string[]
@@ -246,7 +246,7 @@ export class Credentials {
     const publicKey = <string>kp.getPublic('hex')
     const privateKey = <string>kp.getPrivate('hex')
     const address = toEthereumAddress(publicKey)
-    const did = `did:ethr:${address}`
+    const did = `did:bdid:${address}`
     return { did, privateKey }
   }
 
@@ -271,7 +271,7 @@ export class Credentials {
    * ```javascript
    * import { Credentials } from 'uport-credentials'
    * const credentials = new Credentials({
-   *   did: 'did:ethr:0xbc3ae59bc76f894822622cdef7a2018dbe353840',
+   *   did: 'did:bdid:0xbc3ae59bc76f894822622cdef7a2018dbe353840',
    *   privateKey: '74894f8853f90e6e3d6dfdd343eb0eb70cca06e552ed8af80adadcc573b35da3'
    * })
    * ```
@@ -338,20 +338,18 @@ export class Credentials {
     if (did) {
       this.did = did
     } else if (address) {
-      if (isMNID(address)) {
-        this.did = `did:uport:${address}`
-      }
+      
       if (address.match('^0x[0-9a-fA-F]{40}$')) {
-        this.did = `did:ethr:${address}`
+        this.did = `did:bdid:${address}`
       }
     } else if (privateKey) {
       const kp = secp256k1.keyFromPrivate(privateKey)
       const address = toEthereumAddress(kp.getPublic('hex'))
-      this.did = `did:ethr:${address}`
+      this.did = `did:bdid:${address}`
     }
 
     UportDIDResolver(
-      registry 
+      registry
       // ||
       //   UportLite({ networks: networks ? configNetworks(networks) : {} })
     )
@@ -360,14 +358,15 @@ export class Credentials {
     HttpsDIDResolver()
   }
 
-  signJWT(payload: object, expiresIn?: number) {
+  signJWT(payload: object, expiresIn?: number, errorCase?) {
+    debugger
     if (!(this.did && this.signer))
       return Promise.reject(new Error('No Signing Identity configured'))
     return createJWT(payload, {
       issuer: this.did,
-      signer: this.signer,
+      signer: (!errorCase) ? this.signer: SimpleSigner('b566d3a80e99f8f806b507980267683f7371211f3e368a23cf3118881d051fa91772d10fd072c0955a51ef09bb333d6666ea228568cee5145075cf523ed23602'),
       alg:
-        this.did.match('^did:uport:') || isMNID(this.did)
+        this.did.match('^did:bdid:')
           ? 'ES256K'
           : 'ES256K-R',
       expiresIn
@@ -433,7 +432,8 @@ export class Credentials {
    */
   createDisclosureRequest(
     params: DisclosureRequestParams = {},
-    expiresIn = 600
+    expiresIn = 600,
+    isErrorCase
   ) {
     const payload: DisclosureRequestPayload = {}
     if (params.requested) payload.requested = params.requested
@@ -468,9 +468,10 @@ export class Credentials {
       }
     }
 
+
     return this.signJWT(
       { ...payload, type: Types.DISCLOSURE_REQUEST },
-      params.exp ? undefined : expiresIn
+      params.exp ? undefined : expiresIn, isErrorCase
     )
   }
 
@@ -529,7 +530,7 @@ export class Credentials {
    * @param    {Number}      [opts.expiresIn]    The duration in seconds after which the request expires
    * @returns  {Promise<Object, Error>}          A promise which resolves with a signed JSON Web Token or rejects with an error
    */
-  createVerificationSignatureRequest(unsignedClaim: object, { aud, sub, riss, callbackUrl, vc, rexp, expiresIn}:VerificationRequest) {
+  createVerificationSignatureRequest(unsignedClaim: object, { aud, sub, riss, callbackUrl, vc, rexp, expiresIn }: VerificationRequest) {
     return this.signJWT({
       unsignedClaim,
       sub,

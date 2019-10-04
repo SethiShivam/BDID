@@ -255,6 +255,7 @@ class Connect {
 
 
   send(request, id, { redirectUrl, data, type, cancel } = {}) {
+    debugger
     if (!id) throw new Error('Requires request id')
     if (this.isOnMobile) {
       if (!redirectUrl & !type) type = 'redirect'
@@ -341,7 +342,7 @@ class Connect {
    *        "Document": "QmZZBBKPS2NWc6PMZbUk9zUHCo1SHKzQPPX4ndfwaYzmPW"
    *      }
    *    },
-   *    sub: "did:ethr:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
+   *    sub: "did:bdid:0x413daa771a2fc9c5ae5a66abd144881ef2498c54"
    *  }
    *  connect.requestVerificationSignature(unsignedClaim).then(jwt => {
    *    ...
@@ -424,9 +425,15 @@ class Connect {
    *  @param    {Object}     [sendOpts]            reference send function options
    */
 
-  async requestDisclosure(reqObj = {}, id = 'disclosureReq', sendOpts) {
+  async requestDisclosure(reqObj = {}, id = 'disclosureReq', sendOpts = {}, isErrorCase) {
     if (!reqObj.vc) await this.signAndUploadProfile()
     // Augment request object with verified claims, accountType, and a callback url
+    if (!id) {
+      id = 'disclosureReq'
+    }
+    if (sendOpts) {
+      sendOpts = {}
+    }
     let data = this.genCallback(id);
 
     reqObj = Object.assign({
@@ -440,7 +447,7 @@ class Connect {
     }
 
     // Create and send request
-    this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn)
+    this.credentials.createDisclosureRequest(reqObj, reqObj.expiresIn, isErrorCase)
       .then(jwt => this.send(jwt, id, sendOpts))
   }
 

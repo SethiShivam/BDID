@@ -1,19 +1,6 @@
 import SVG from './assets'
 import modalCSS from './style.css'
 
-const appleStoreLink = 'https://itunes.apple.com/us/app/uport-id/id1123434510?mt=8'
-const googleStoreLink = 'https://play.google.com/store/apps/details?id=com.uportMobile'
-
-
-const FOOTER = `
-  <div class="uport__modal-section uport__grey">
-    <p>Don't have uPort? Get it here!</p>
-    <div>
-      <a href="${googleStoreLink}" target="_blank"><img src="${SVG.androidApp}"/></a>
-      <a href="${appleStoreLink}" target="_blank"><img src="${SVG.appleApp}"/></a>
-    </div>
-  </div>
-`
 
 /**
  * Skeleton for a modal popup, styled with css imported from './style.css'
@@ -50,10 +37,9 @@ export const qrModal = (qrImageUri, modalText = '') => uportModal(`
     <h2 id="uport__qr-text">${modalText}</h2>
     <div class="uport__modal-section">
       <img src="${qrImageUri}" />
-      <p>Scan QR code with uPort Mobile App</p>
+      <p>Scan QR code with BDID Mobile App</p>
     </div>
   </div>
-  ${FOOTER}
 `)
 
 /**

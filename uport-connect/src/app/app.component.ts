@@ -20,7 +20,7 @@ export class AppComponent {
   isLogin = false
   constructor(private router: Router) {
     let self = this;
-    uport.onResponse('disclosureReq', function (err,res ) {
+    uport.onResponse('disclosureReq', function (err, res) {
       debugger
       if (err) {
         throw err
@@ -54,12 +54,28 @@ export class AppComponent {
     }
     // const reqId = 'disclosureReq'
 
-    uport.requestDisclosure(reqObj)
+    uport.requestDisclosure(reqObj, '', {}, false)
     //cb
   }
   logout() {
     this.isLogin = false
     localStorage.removeItem("did")
     this.router.navigate(['/']);
+  }
+
+  errorCase() {
+    const reqObj = {
+      requested: ['name', 'country', 'email', 'phone'],
+      notifications: true,
+      networkId: "",
+      rpcUrl: "",
+      accountType: "",
+      expiresIn: 2000,
+      verified: [""],
+      callbackUrl: ""
+    }
+    // const reqId = 'disclosureReq'
+
+    uport.requestDisclosure(reqObj, '', {}, true)
   }
 }

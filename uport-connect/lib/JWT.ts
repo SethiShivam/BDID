@@ -106,7 +106,6 @@ function isDIDOrMNID(mnidOrDid: string): RegExpMatchArray {
 export function normalizeDID(mnidOrDid: string): string {
   if (mnidOrDid.match(/^did:/)) return mnidOrDid
   // Backwards compatibility
-  if (isMNID(mnidOrDid)) return `did:uport:${mnidOrDid}`
   throw new Error(`Not a valid DID '${mnidOrDid}'`)
 }
 
@@ -187,7 +186,7 @@ export async function createJWT(
  *  and the did doc of the issuer of the JWT.
  *
  *  @example
- *  verifyJWT('did:uport:eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJyZXF1Z....', {audience: '5A8bRWU3F7j3REx3vkJ...', callbackUrl: 'https://...'}).then(obj => {
+ *  verifyJWT('did:bdid:eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJyZXF1Z....', {audience: '5A8bRWU3F7j3REx3vkJ...', callbackUrl: 'https://...'}).then(obj => {
  *      const did = obj.did // DID of signer
  *      const payload = obj.payload
  *      const doc = obj.doc // DID Document of signer
@@ -288,7 +287,7 @@ export async function verifyJWT(
  * Resolves relevant public keys or other authenticating material used to verify signature from the DID document of provided DID
  *
  *  @example
- *  resolveAuthenticator('ES256K', 'did:uport:2nQtiQG6Cgm1GYTBaaKAgr76uY7iSexUkqX').then(obj => {
+ *  resolveAuthenticator('ES256K', 'did:bdid:2nQtiQG6Cgm1GYTBaaKAgr76uY7iSexUkqX').then(obj => {
  *      const payload = obj.payload
  *      const profile = obj.profile
  *      const jwt = obj.jwt

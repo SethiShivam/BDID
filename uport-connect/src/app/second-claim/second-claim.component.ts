@@ -21,7 +21,7 @@ export class SecondClaimComponent implements OnInit {
       verified: ['FirstClaim'],
       callbackUrl: "",
     }
-    second.requestDisclosure(reqObj)
+    second.requestDisclosure(reqObj, '', '', '')
 
     second.onResponse('disclosureReq', function (err, res) {
       if (err)
